@@ -45,7 +45,6 @@ export class AuthService {
       neighborhood: user.neighborhood,
       city: user.city,
       state: user.state,
-      createdAt: user.createdAt,
     };
   }
 
