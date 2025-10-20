@@ -14,6 +14,7 @@ model User {
   name String   @db.VarChar(255)
   email String  @unique @db.VarChar(255)
   password String @db.VarChar(255)
+  refreshToken String?   @db.VarChar(255)
   resetCode String? @db.VarChar(6)
   resetCodeExpiration DateTime?
   profilePic String?

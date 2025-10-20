@@ -36,3 +36,19 @@ export class SignInDTO {
   @IsNotEmpty()
   password: string;
 }
+
+export class SignOutDTO {
+  @IsNotEmpty()
+  userId: number;
+}
+
+export class RefreshTokenDTO {
+  @IsNotEmpty()
+  @IsString()
+  refreshToken: string;
+}
+
+export class isEmailAvailableDTO {
+  @IsEmail()
+  email: string;
+}
