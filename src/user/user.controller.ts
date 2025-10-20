@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Patch,
   UseGuards,
@@ -11,24 +12,84 @@ import {
 import { UserService } from './user.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { User } from '@prisma/client';
+import { UserDTORequest } from './dto/userDTO';
 
 @Controller('users')
 export class UserController {
   constructor(private userService: UserService) {}
 
   @Get()
-  async getAllUsers(): Promise<User[] | null> {
-    return this.userService.findAll();
+  async getAllUsers(): Promise<UserDTORequest[] | null> {
+    const users = await this.userService.findAll();
+    return users.map((user) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      profilePic: user.profilePic,
+      phone: user.phone,
+      document: user.document,
+      zipCode: user.zipCode,
+      street: user.street,
+      numberAddress: user.numberAddress,
+      complement: user.complement,
+      neighborhood: user.neighborhood,
+      city: user.city,
+      state: user.state,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    }));
   }
 
   @Get(':id')
-  async getUserById(@Param('id') id: number): Promise<User | null> {
-    return this.userService.findById(+id);
+  async getUserById(@Param('id') id: number): Promise<UserDTORequest | null> {
+    const user = await this.userService.findById(+id);
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      profilePic: user.profilePic,
+      phone: user.phone,
+      document: user.document,
+      zipCode: user.zipCode,
+      street: user.street,
+      numberAddress: user.numberAddress,
+      complement: user.complement,
+      neighborhood: user.neighborhood,
+      city: user.city,
+      state: user.state,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
   }
 
   @Get('email')
-  async getUserByEmail(@Param('email') email: string): Promise<User | null> {
-    return this.userService.findByEmail(email);
+  async getUserByEmail(
+    @Param('email') email: string,
+  ): Promise<UserDTORequest | null> {
+    const user = await this.userService.findByEmail(email);
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      profilePic: user.profilePic,
+      phone: user.phone,
+      document: user.document,
+      zipCode: user.zipCode,
+      street: user.street,
+      numberAddress: user.numberAddress,
+      complement: user.complement,
+      neighborhood: user.neighborhood,
+      city: user.city,
+      state: user.state,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
   }
 
   @UseGuards(AuthGuard)
