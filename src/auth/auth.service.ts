@@ -63,15 +63,33 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const accessToken = await this.jwtService.signAsync({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      document: user.document,
+    const accessToken = await this.jwtService.signAsync(
+      {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        document: user.document,
+      },
+      { expiresIn: '15m' },
+    );
+
+    const refreshToken = await this.jwtService.signAsync(
+      {
+        id: user.id,
+      },
+      { expiresIn: '7d' },
+    );
+
+    await this.prismaService.user.update({
+      where: { id: user.id },
+      data: {
+        refreshToken,
+      },
     });
 
     return {
       accessToken,
+      refreshToken,
       user: {
         id: user.id,
         email: user.email,
@@ -88,5 +106,60 @@ export class AuthService {
         state: user.state,
       },
     };
+  }
+
+  async singOut(userId: number) {
+    await this.prismaService.user.update({
+      where: { id: userId },
+      data: {
+        refreshToken: null,
+      },
+    });
+
+    return 'Logout realizado com sucesso';
+  }
+
+  async refreshToken(refreshToken: string) {
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token is missing');
+    }
+
+    const user = await this.prismaService.user.findFirst({
+      where: { refreshToken },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const accessToken = await this.jwtService.signAsync(
+      {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        document: user.document,
+      },
+      { expiresIn: '15m' },
+    );
+
+    return {
+      accessToken,
+    };
+  }
+
+  async isEmailAvailable(email: string) {
+    if (!email) {
+      throw new UnauthorizedException('Email is missing');
+    }
+
+    const existingUser = await this.prismaService.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return 'Esse email já está em uso';
+    } else {
+      return 'Esse email está disponível';
+    }
   }
 }
