@@ -35,6 +35,17 @@ export class AuthService {
       id: user.id,
       email: user.email,
       name: user.name,
+      profilePic: user.profilePic,
+      phone: user.phone,
+      document: user.document,
+      zipCode: user.zipCode,
+      street: user.street,
+      numberAddress: user.numberAddress,
+      complement: user.complement,
+      neighborhood: user.neighborhood,
+      city: user.city,
+      state: user.state,
+      createdAt: user.createdAt,
     };
   }
 
@@ -62,6 +73,21 @@ export class AuthService {
 
     return {
       accessToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        profilePic: user.profilePic,
+        phone: user.phone,
+        document: user.document,
+        zipCode: user.zipCode,
+        street: user.street,
+        numberAddress: user.numberAddress,
+        complement: user.complement,
+        neighborhood: user.neighborhood,
+        city: user.city,
+        state: user.state,
+      },
     };
   }
 }

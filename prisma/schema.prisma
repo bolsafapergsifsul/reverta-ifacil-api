@@ -14,10 +14,18 @@ model User {
   name String   @db.VarChar(255)
   email String  @unique @db.VarChar(255)
   password String @db.VarChar(255)
-  document String @unique @db.VarChar(255)
+  resetCode String? @db.VarChar(6)
+  resetCodeExpiration DateTime?
+  profilePic String?
   phone String @db.VarChar(255)
-  cep String @db.VarChar(255)
+  document String @unique @db.VarChar(255)
+  zipCode String @db.VarChar(255)
+  street String @db.VarChar(255)
   numberAddress String @db.VarChar(255)
   complement String? @db.VarChar(255)
-  resetCode String? @db.VarChar(6)
+  neighborhood String @db.VarChar(255)
+  city String @db.VarChar(255)
+  state String @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
