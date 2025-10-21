@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SignInDTO, SignUpDTO } from './dtos/auth';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -65,25 +66,33 @@ export class AuthService {
 
     const accessToken = await this.jwtService.signAsync(
       {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        document: user.document,
+        sub: user.id,
       },
-      { expiresIn: '15m' },
+      {
+        expiresIn: '15m',
+      },
     );
 
     const refreshToken = await this.jwtService.signAsync(
       {
-        id: user.id,
+        sub: user.id,
       },
-      { expiresIn: '7d' },
+
+      {
+        expiresIn: '7d',
+        secret: process.env.REFRESH_TOKEN_SECRET,
+      },
     );
+
+    const hashedRefreshToken = crypto
+      .createHash('sha256')
+      .update(refreshToken)
+      .digest('hex');
 
     await this.prismaService.user.update({
       where: { id: user.id },
       data: {
-        refreshToken,
+        refreshToken: hashedRefreshToken,
       },
     });
 
@@ -119,31 +128,82 @@ export class AuthService {
     return 'Logout realizado com sucesso';
   }
 
-  async refreshToken(refreshToken: string) {
-    if (!refreshToken) {
-      throw new UnauthorizedException('Refresh token is missing');
+  async refreshToken(token: string) {
+    if (!token) {
+      throw new UnauthorizedException('Token de atualização ausente');
     }
 
-    const user = await this.prismaService.user.findFirst({
-      where: { refreshToken },
+    let payload;
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      payload = await this.jwtService.verifyAsync(token, {
+        secret: process.env.REFRESH_TOKEN_SECRET,
+      });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      throw new UnauthorizedException(
+        'Token de atualização inválido ou exprirado',
+      );
+    }
+
+    const user = await this.prismaService.user.findUnique({
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      where: { id: payload.sub },
     });
 
-    if (!user) {
-      throw new UnauthorizedException('Invalid refresh token');
+    if (!user || !user.refreshToken) {
+      throw new UnauthorizedException(
+        'Usuário não encontrado ou sem token de atualização',
+      );
     }
 
-    const accessToken = await this.jwtService.signAsync(
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const tokensMatch = hashedToken === user.refreshToken;
+
+    if (!tokensMatch) {
+      await this.prismaService.user.update({
+        where: { id: user.id },
+        data: {
+          refreshToken: null,
+        },
+      });
+      throw new UnauthorizedException('Token de atualização roubado.');
+    }
+    const newAccessToken = await this.jwtService.signAsync(
       {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        document: user.document,
+        sub: user.id,
       },
-      { expiresIn: '15m' },
+      {
+        expiresIn: '15m',
+      },
     );
 
+    const newRefreshToken = await this.jwtService.signAsync(
+      {
+        sub: user.id,
+      },
+      {
+        expiresIn: '7d',
+        secret: process.env.REFRESH_TOKEN_SECRET,
+      },
+    );
+
+    const newHashedRefreshToken = crypto
+      .createHash('sha256')
+      .update(newRefreshToken)
+      .digest('hex');
+
+    await this.prismaService.user.update({
+      where: { id: user.id },
+      data: {
+        refreshToken: newHashedRefreshToken,
+      },
+    });
     return {
-      accessToken,
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
     };
   }
 
