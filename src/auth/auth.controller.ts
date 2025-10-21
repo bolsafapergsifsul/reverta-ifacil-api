@@ -1,4 +1,11 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import {
   isEmailAvailableDTO,
   RefreshTokenDTO,
@@ -7,6 +14,7 @@ import {
   SignUpDTO,
 } from './dtos/auth';
 import { AuthService } from './auth.service';
+import { AuthGuard } from './auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -22,9 +30,13 @@ export class AuthController {
     return await this.authService.signIn(signInData);
   }
 
+  @UseGuards(AuthGuard)
   @Post('signout')
-  async signOut(@Body() data: SignOutDTO) {
-    return await this.authService.singOut(data.userId);
+  async signOut(@Request() req) {
+    const userPaylod = req.user as { sub: number };
+    const userId = userPaylod.sub;
+
+    return await this.authService.singOut(userId);
   }
 
   @Post('refresh-token')
