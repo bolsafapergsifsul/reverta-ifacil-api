@@ -204,6 +204,21 @@ export class AuthService {
     return {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        profilePic: user.profilePic,
+        phone: user.phone,
+        document: user.document,
+        zipCode: user.zipCode,
+        street: user.street,
+        numberAddress: user.numberAddress,
+        complement: user.complement,
+        neighborhood: user.neighborhood,
+        city: user.city,
+        state: user.state,
+      },
     };
   }
 
@@ -217,9 +232,15 @@ export class AuthService {
     });
 
     if (existingUser) {
-      return 'Esse email já está em uso';
+      return {
+        message: 'Email não disponível',
+        isAvailable: false,
+      };
     } else {
-      return 'Esse email está disponível';
+      return {
+        message: 'Email disponível',
+        isAvailable: true,
+      };
     }
   }
 }

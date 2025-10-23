@@ -5,11 +5,16 @@ export class codeVerificationDTO {
   email: string;
 }
 
-export class forgotPasswordDTO {
+export class resetCodeDTO {
   @IsEmail()
   email: string;
   @IsString()
   resetCode: string;
+}
+
+export class forgotPasswordDTO {
+  @IsEmail()
+  email: string;
   @IsString()
   newPassword: string;
 }

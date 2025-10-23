@@ -10,7 +10,6 @@ import {
   isEmailAvailableDTO,
   RefreshTokenDTO,
   SignInDTO,
-  SignOutDTO,
   SignUpDTO,
 } from './dtos/auth';
 import { AuthService } from './auth.service';
@@ -33,6 +32,7 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Post('signout')
   async signOut(@Request() req) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const userPaylod = req.user as { sub: number };
     const userId = userPaylod.sub;
 

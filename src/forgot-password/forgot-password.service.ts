@@ -24,7 +24,7 @@ export class ForgotPasswordService {
       throw new NotFoundException('User not found');
     }
 
-    const resetCode = v4().slice(0, 6);
+    const resetCode = v4().slice(0, 4);
 
     await this.prisma.user.update({
       where: { id: user.id },
@@ -41,11 +41,7 @@ export class ForgotPasswordService {
     return 'Código de redefinição enviado com sucesso';
   }
 
-  async resetPassword(
-    email: string,
-    resetCode: string,
-    newPassword: string,
-  ): Promise<string> {
+  async validateResetCode(email: string, resetCode: string): Promise<boolean> {
     const user = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -56,6 +52,17 @@ export class ForgotPasswordService {
 
     if (user.resetCode !== resetCode) {
       throw new BadRequestException('Código de redefinição inválido');
+    }
+    return true;
+  }
+
+  async resetPassword(email: string, newPassword: string): Promise<string> {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Usuário não encontrado');
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
