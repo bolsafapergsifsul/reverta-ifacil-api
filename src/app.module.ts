@@ -4,6 +4,7 @@ import { PrismaService } from './prisma/prisma.service';
 import { UserModule } from './user/user.module';
 import { ForgotPasswordModule } from './forgot-password/forgot-password.module';
 import { CustomMailerModule } from './mailer/mailer.module';
+import { EcoPointModule } from './eco-point/eco-point.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { CustomMailerModule } from './mailer/mailer.module';
     UserModule,
     ForgotPasswordModule,
     CustomMailerModule,
+    EcoPointModule,
   ],
   controllers: [],
   providers: [PrismaService],

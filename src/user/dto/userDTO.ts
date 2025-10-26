@@ -3,6 +3,7 @@ import {
   IsEmail,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
 } from 'class-validator';
 
@@ -21,18 +22,12 @@ export class UserDTORequest {
   document: string;
   @IsString()
   zipCode: string;
-  @IsString()
-  street: string;
-  @IsString()
-  numberAddress: string;
-  @IsString()
-  complement: string | null;
-  @IsString()
-  neighborhood: string;
-  @IsString()
-  city: string;
-  @IsString()
-  state: string;
+  @IsNumber()
+  @IsOptional()
+  latitude: number | null;
+  @IsNumber()
+  @IsOptional()
+  longitude: number | null;
   @IsDate()
   createdAt: Date;
   @IsDate()

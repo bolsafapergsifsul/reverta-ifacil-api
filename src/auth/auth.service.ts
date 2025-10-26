@@ -40,12 +40,8 @@ export class AuthService {
       phone: user.phone,
       document: user.document,
       zipCode: user.zipCode,
-      street: user.street,
-      numberAddress: user.numberAddress,
-      complement: user.complement,
-      neighborhood: user.neighborhood,
-      city: user.city,
-      state: user.state,
+      latitude: user.latitude,
+      longitude: user.longitude,
     };
   }
 
@@ -107,12 +103,8 @@ export class AuthService {
         phone: user.phone,
         document: user.document,
         zipCode: user.zipCode,
-        street: user.street,
-        numberAddress: user.numberAddress,
-        complement: user.complement,
-        neighborhood: user.neighborhood,
-        city: user.city,
-        state: user.state,
+        latitude: user.latitude,
+        longitude: user.longitude,
       },
     };
   }
@@ -212,12 +204,8 @@ export class AuthService {
         phone: user.phone,
         document: user.document,
         zipCode: user.zipCode,
-        street: user.street,
-        numberAddress: user.numberAddress,
-        complement: user.complement,
-        neighborhood: user.neighborhood,
-        city: user.city,
-        state: user.state,
+        latitude: user.latitude,
+        longitude: user.longitude,
       },
     };
   }
