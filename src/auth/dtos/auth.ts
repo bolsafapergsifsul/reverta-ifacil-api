@@ -1,4 +1,10 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class SignUpDTO {
   @IsNotEmpty()
@@ -16,18 +22,10 @@ export class SignUpDTO {
   document: string;
   @IsString()
   zipCode: string;
-  @IsString()
-  street: string;
-  @IsString()
-  numberAddress: string;
-  @IsString()
-  complement?: string;
-  @IsString()
-  neighborhood: string;
-  @IsString()
-  city: string;
-  @IsString()
-  state: string;
+  @IsNumber()
+  latitude: number;
+  @IsNumber()
+  longitude: number;
 }
 
 export class SignInDTO {

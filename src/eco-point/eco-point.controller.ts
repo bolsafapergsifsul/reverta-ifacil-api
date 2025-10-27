@@ -12,7 +12,7 @@ import { EcoPointService } from './eco-point.service';
 import { EcoPointDTO } from './dtos/ecoPointDTOS';
 import { EcoPointType, EcoPointTypeFormatted } from './ecoPointTypes';
 
-@Controller('eco-point')
+@Controller('eco-points')
 export class EcoPointController {
   constructor(private ecoPointService: EcoPointService) {}
 
