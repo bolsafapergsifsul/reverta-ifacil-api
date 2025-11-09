@@ -21,6 +21,7 @@ model User {
   phone String @db.VarChar(255)
   document String @unique @db.VarChar(255)
   zipCode String @db.VarChar(255)
+  numberAddress String @db.VarChar(255)
   latitude Float?
   longitude Float?
   createdAt DateTime @default(now())

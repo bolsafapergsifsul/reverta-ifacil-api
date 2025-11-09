@@ -22,6 +22,8 @@ export class UserDTORequest {
   document: string;
   @IsString()
   zipCode: string;
+  @IsString()
+  numberAddress: string;
   @IsNumber()
   @IsOptional()
   latitude: number | null;

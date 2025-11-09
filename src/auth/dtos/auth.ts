@@ -22,6 +22,8 @@ export class SignUpDTO {
   document: string;
   @IsString()
   zipCode: string;
+  @IsString()
+  numberAddress: string;
   @IsNumber()
   latitude: number;
   @IsNumber()

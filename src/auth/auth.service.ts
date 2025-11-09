@@ -40,6 +40,7 @@ export class AuthService {
       phone: user.phone,
       document: user.document,
       zipCode: user.zipCode,
+      numberAddress: user.numberAddress,
       latitude: user.latitude,
       longitude: user.longitude,
     };
@@ -103,6 +104,7 @@ export class AuthService {
         phone: user.phone,
         document: user.document,
         zipCode: user.zipCode,
+        numberAddress: user.numberAddress,
         latitude: user.latitude,
         longitude: user.longitude,
       },
@@ -204,6 +206,7 @@ export class AuthService {
         phone: user.phone,
         document: user.document,
         zipCode: user.zipCode,
+        numberAddress: user.numberAddress,
         latitude: user.latitude,
         longitude: user.longitude,
       },
