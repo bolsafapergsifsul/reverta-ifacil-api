@@ -18,32 +18,95 @@ model User {
   resetCode String? @db.VarChar(6)
   resetCodeExpiration DateTime?
   profilePic String?
-  phone String @db.VarChar(255)
+  phoneNumber String @db.VarChar(255)
   document String @unique @db.VarChar(255)
-  zipCode String @db.VarChar(255)
-  numberAddress String @db.VarChar(255)
-  latitude Float?
-  longitude Float?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  addressId Int? @unique
+  address Address? @relation(fields: [addressId], references: [id])
+  collects Collect[]
 }
 
 model EcoPoint {
   id Int       @id @default(autoincrement())
   name String   @db.VarChar(255)
-  zipCode String @db.VarChar(255)
-  street String @db.VarChar(255)
-  numberAddress String @db.VarChar(255)
-  complement String? @db.VarChar(255)
-  neighborhood String @db.VarChar(255)
-  city String @db.VarChar(255)
-  state String @db.VarChar(255)
-  latitude Float
-  longitude Float
-  serviceHours String
-  phone String
-  collectionsInfo String
-  typeMaterials String
+  serviceHours String? @db.VarChar(255)
+  phoneNumber String? @db.VarChar(20)
+  infos String? @db.VarChar(500)
+  images String[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+   materialsCollected Material[] @relation("EcoPointMaterials")
+  address Address? @relation(fields: [addressId], references: [id])
+  addressId Int? @unique
+
+  collects Collect[]
+}
+
+model Address {
+  id Int @id @default(autoincrement())
+  zipcode String @db.VarChar(8)
+  street String? @db.VarChar(255)
+  numberAddress String? @db.VarChar(255)
+  neighborhood String? @db.VarChar(255)
+  city String? @db.VarChar(255)
+  state String? @db.VarChar(255)
+  complement String? @db.VarChar(255)
+  latitude Float?
+  longitude Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User?
+  ecoPoint EcoPoint?
+  collects Collect[]
+}
+
+model Collect {
+  id Int @id @default(autoincrement())
+  scheduledAt DateTime // data e hora agendada para a coleta
+  estimatedWeight String?
+  notes String? @db.VarChar(250)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId Int
+  user User @relation(fields: [userId], references: [id])
+
+  ecoPointId Int
+  ecoPoint EcoPoint @relation(fields: [ecoPointId], references: [id])
+
+  materialsCollected CollectMaterial[]
+
+  addressId Int
+  address Address @relation(fields: [addressId], references: [id])
+  status CollectStatus @default(PENDING)
+}
+
+enum CollectStatus {
+  PENDING
+  IN_PROGRESS // veiculo a caminho
+  COMPLETED
+  CANCELED
+}
+
+model CollectMaterial {
+  id Int @id @default(autoincrement())
+  collectId Int
+  materialId Int
+  quantity Float?
+
+  collect     Collect     @relation(fields: [collectId], references: [id])
+  material    Material    @relation(fields: [materialId], references: [id])
+}
+
+model Material {
+  id Int @id @default(autoincrement())
+  name String @unique
+  createdAt DateTime @default(now())
+
+  ecoPoints EcoPoint[] @relation("EcoPointMaterials")
+  collectMaterials CollectMaterial[]
 }
