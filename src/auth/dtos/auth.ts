@@ -1,33 +1,31 @@
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, Length } from 'class-validator';
 
 export class SignUpDTO {
   @IsNotEmpty()
+  @IsString()
   name: string;
+
   @IsEmail()
   email: string;
+
   @IsNotEmpty()
+  @IsString()
   password: string;
+
+  @IsNotEmpty()
   @IsString()
-  @IsOptional()
-  profilePic?: string;
-  @IsString()
-  phone: string;
+  phoneNumber: string;
+
+  @IsNotEmpty()
   @IsString()
   document: string;
+
   @IsString()
+  @Length(8, 8)
   zipCode: string;
+
   @IsString()
   numberAddress: string;
-  @IsNumber()
-  latitude: number;
-  @IsNumber()
-  longitude: number;
 }
 
 export class SignInDTO {
