@@ -1,3 +1,4 @@
+import { Decimal } from '@prisma/client/runtime/library';
 import {
   IsDate,
   IsEmail,
@@ -17,19 +18,29 @@ export class UserDTORequest {
   @IsString()
   profilePic: string | null;
   @IsString()
-  phone: string;
+  phoneNumber: string;
   @IsString()
   document: string;
   @IsString()
-  zipCode: string;
+  zipCode: string | null;
   @IsString()
-  numberAddress: string;
+  street: string | null;
+  @IsString()
+  numberAddress: string | null;
+  @IsString()
+  neighborhood: string | null;
+  @IsString()
+  city: string | null;
+  @IsString()
+  state: string | null;
+  @IsString()
+  complement: string | null;
   @IsNumber()
   @IsOptional()
-  latitude: number | null;
+  latitude: Decimal | null;
   @IsNumber()
   @IsOptional()
-  longitude: number | null;
+  longitude: Decimal | null;
   @IsDate()
   createdAt: Date;
   @IsDate()

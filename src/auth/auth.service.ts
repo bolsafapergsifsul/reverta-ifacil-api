@@ -4,12 +4,14 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { SignInDTO, SignUpDTO } from './dtos/auth';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
+import { AddressService } from 'src/address/address.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prismaService: PrismaService,
     private jwtService: JwtService,
+    private addressService: AddressService,
   ) {}
   async signUp(data: SignUpDTO) {
     const userAlreadyExists = await this.prismaService.user.findUnique({
@@ -24,25 +26,21 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
+    const address = await this.addressService.getCompleteAddress(
+      data.zipCode,
+      data.numberAddress,
+    );
+
     const user = await this.prismaService.user.create({
       data: {
         ...data,
-
+        ...address,
         password: hashedPassword,
       },
     });
 
     return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      profilePic: user.profilePic,
-      phone: user.phone,
-      document: user.document,
-      zipCode: user.zipCode,
-      numberAddress: user.numberAddress,
-      latitude: user.latitude,
-      longitude: user.longitude,
+      user,
     };
   }
 
@@ -96,18 +94,7 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        profilePic: user.profilePic,
-        phone: user.phone,
-        document: user.document,
-        zipCode: user.zipCode,
-        numberAddress: user.numberAddress,
-        latitude: user.latitude,
-        longitude: user.longitude,
-      },
+      user,
     };
   }
 
@@ -198,18 +185,7 @@ export class AuthService {
     return {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        profilePic: user.profilePic,
-        phone: user.phone,
-        document: user.document,
-        zipCode: user.zipCode,
-        numberAddress: user.numberAddress,
-        latitude: user.latitude,
-        longitude: user.longitude,
-      },
+      user,
     };
   }
 

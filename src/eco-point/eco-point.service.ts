@@ -1,15 +1,28 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { EcoPointType, EcoPointTypeFormatted } from './ecoPointTypes';
+import { EcoPointType } from './ecoPointTypes';
 import { EcoPointDTO } from './dtos/ecoPointDTOS';
+import { AddressService } from 'src/address/address.service';
 
 @Injectable()
 export class EcoPointService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private addressService: AddressService,
+  ) {}
+  async findAll(): Promise<EcoPointType[]> {
+    const ecoPoints = await this.prismaService.ecoPoint.findMany({
+      include: {
+        materialsCollected: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
 
-  async findAll(): Promise<EcoPointTypeFormatted[]> {
-    const ecoPoints = await this.prismaService.ecoPoint.findMany({});
-    const ecoPointsFormatted = ecoPoints.map((ecoPoint) => ({
+    return ecoPoints.map((ecoPoint) => ({
       id: ecoPoint.id,
       name: ecoPoint.name,
       zipCode: ecoPoint.zipCode,
@@ -19,70 +32,107 @@ export class EcoPointService {
       neighborhood: ecoPoint.neighborhood,
       city: ecoPoint.city,
       state: ecoPoint.state,
-      latitude: ecoPoint.latitude,
-      longitude: ecoPoint.longitude,
-      phone: ecoPoint.phone,
+      latitude: ecoPoint.latitude ? Number(ecoPoint.latitude) : null,
+      longitude: ecoPoint.longitude ? Number(ecoPoint.longitude) : null,
+      phoneNumber: ecoPoint.phoneNumber,
       serviceHours: ecoPoint.serviceHours,
+      infos: ecoPoint.infos,
+      images: ecoPoint.images,
+      materialsCollected: ecoPoint.materialsCollected,
     }));
-
-    return ecoPointsFormatted;
   }
-  findById(id: number): Promise<EcoPointType | null> {
-    const ecoPoint = this.prismaService.ecoPoint.findUnique({
+
+  async findById(id: number): Promise<EcoPointType> {
+    const ecoPoint = await this.prismaService.ecoPoint.findUnique({
       where: { id },
+      include: {
+        materialsCollected: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!ecoPoint) {
+      throw new BadRequestException('EcoPoint não encontrado');
+    }
+
+    return {
+      ...ecoPoint,
+      latitude: ecoPoint.latitude ? Number(ecoPoint.latitude) : null,
+      longitude: ecoPoint.longitude ? Number(ecoPoint.longitude) : null,
+      materialsCollected: ecoPoint.materialsCollected,
+    };
+  }
+
+  async create(data: EcoPointDTO) {
+    const address = await this.addressService.getCompleteAddress(
+      data.zipCode,
+      data.numberAddress,
+    );
+
+    const ecoPoint = await this.prismaService.ecoPoint.create({
+      data: {
+        name: data.name,
+        zipCode: address.zipCode,
+        street: address.street,
+        numberAddress: address.numberAddress,
+        neighborhood: address.neighborhood,
+        city: address.city,
+        state: address.state,
+        complement: '',
+        latitude: address.latitude,
+        longitude: address.longitude,
+        serviceHours: data.serviceHours,
+        phoneNumber: data.phoneNumber,
+        infos: data.infos,
+        images: data.images,
+
+        materialsCollected: {
+          connect: data.materialsId.map((id) => ({ id: Number(id) })),
+        },
+      },
+      include: {
+        materialsCollected: true,
+      },
     });
 
     return ecoPoint;
   }
 
-  async create(data: EcoPointDTO) {
-    const ecoPoint = await this.prismaService.ecoPoint.create({
-      data: {
-        ...data,
-      },
-    });
-    return {
-      id: ecoPoint.id,
-      name: ecoPoint.name,
-      zipCode: ecoPoint.zipCode,
-      street: ecoPoint.street,
-      numberAddress: ecoPoint.numberAddress,
-      complement: ecoPoint.complement,
-      neighborhood: ecoPoint.neighborhood,
-      city: ecoPoint.city,
-      state: ecoPoint.state,
-      latitude: ecoPoint.latitude,
-      longitude: ecoPoint.longitude,
-      phone: ecoPoint.phone,
-      serviceHours: ecoPoint.serviceHours,
-      collectionsInfo: ecoPoint.collectionsInfo,
-      typeMaterials: ecoPoint.typeMaterials,
-    };
-  }
-
   async updateEcoPoint(
     id: number,
-    data: Partial<EcoPointType>,
+    data: Omit<EcoPointType, 'id' | 'materialsCollected'>,
   ): Promise<EcoPointType> {
     const ecoPoint = await this.prismaService.ecoPoint.findUnique({
       where: { id },
     });
 
     if (!ecoPoint) {
-      throw new Error('EcoPoint não encontrado');
+      throw new BadRequestException('EcoPoint não encontrado');
     }
 
     const updatedEcoPoint = await this.prismaService.ecoPoint.update({
       where: { id },
       data,
     });
-    return updatedEcoPoint;
+
+    return {
+      ...updatedEcoPoint,
+      latitude: updatedEcoPoint.latitude
+        ? Number(updatedEcoPoint.latitude)
+        : null,
+      longitude: updatedEcoPoint.longitude
+        ? Number(updatedEcoPoint.longitude)
+        : null,
+    };
   }
 
   async removeEcoPoint(id: number) {
-    const deletedEcoPoint = await this.prismaService.ecoPoint.delete({
+    return this.prismaService.ecoPoint.delete({
       where: { id },
     });
-    return deletedEcoPoint;
   }
 }
