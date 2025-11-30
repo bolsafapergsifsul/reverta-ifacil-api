@@ -7,6 +7,7 @@ import { CustomMailerModule } from './mailer/mailer.module';
 import { EcoPointModule } from './eco-point/eco-point.module';
 import { AddressModule } from './address/address.module';
 import { MaterialModule } from './material/material.module';
+import { CollectModule } from './collect/collect.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { MaterialModule } from './material/material.module';
     EcoPointModule,
     AddressModule,
     MaterialModule,
+    CollectModule,
   ],
   controllers: [],
   providers: [PrismaService],

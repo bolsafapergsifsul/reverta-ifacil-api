@@ -35,3 +35,13 @@ export interface EcoPointTypeFormatted {
   serviceHours: string | null;
   phoneNumber: string | null;
 }
+
+export interface EcoPointUpdateType {
+  name: string;
+  serviceHours?: string | null;
+  phoneNumber?: string | null;
+  infos?: string | null;
+  images?: string[];
+  zipCode?: string | null;
+  numberAddress?: string | null;
+}

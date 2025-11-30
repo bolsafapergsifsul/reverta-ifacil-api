@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { EcoPointType } from './ecoPointTypes';
-import { EcoPointDTO } from './dtos/ecoPointDTOS';
+import { EcoPointType, EcoPointUpdateType } from './ecoPointTypes';
+import { EcoPointDTO, SearchNearbyEcoPointsDTO } from './dtos/ecoPointDTOS';
 import { AddressService } from 'src/address/address.service';
 
 @Injectable()
@@ -66,6 +66,73 @@ export class EcoPointService {
       materialsCollected: ecoPoint.materialsCollected,
     };
   }
+  async getNearEcoPoints(query: SearchNearbyEcoPointsDTO) {
+    let userLat: number;
+    let userLng: number;
+
+    if (query.zipdCode) {
+      const address = await this.addressService.getCompleteAddress(
+        query.zipdCode,
+        '0',
+      );
+
+      userLat = address.latitude;
+      userLng = address.longitude;
+    } else if (query.latitude && query.longitude) {
+      userLat = query.latitude;
+      userLng = query.longitude;
+    } else {
+      throw new BadRequestException(
+        'Você deve enviar um CEP ou latitude/longitude.',
+      );
+    }
+
+    const ecoPoints = await this.prismaService.ecoPoint.findMany({});
+    const calculateDistance = (lat1, lon1, lat2, lon2) => {
+      const R = 6371; // km
+      const dLat = ((lat2 - lat1) * Math.PI) / 180;
+      const dLon = ((lon2 - lon1) * Math.PI) / 180;
+
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos((lat1 * Math.PI) / 180) *
+          Math.cos((lat2 * Math.PI) / 180) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2);
+
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+      return R * c;
+    };
+
+    // -----------------------------------------
+    // 5. Formatar + adicionar distância
+    // -----------------------------------------
+    const formatted = ecoPoints.map((eco) => ({
+      id: eco.id,
+      name: eco.name,
+      distance: calculateDistance(
+        userLat,
+        userLng,
+        Number(eco.latitude),
+        Number(eco.longitude),
+      ),
+      zipCode: eco.zipCode,
+      street: eco.street,
+      numberAddress: eco.numberAddress,
+      city: eco.city,
+      state: eco.state,
+      serviceHours: eco.serviceHours,
+      phoneNumber: eco.phoneNumber,
+      latitude: eco.latitude,
+      longitude: eco.longitude,
+    }));
+
+    // -----------------------------------------
+    // 6. Ordenar por distância ascendente
+    // -----------------------------------------
+    return formatted.sort((a, b) => a.distance - b.distance);
+  }
 
   async create(data: EcoPointDTO) {
     const address = await this.addressService.getCompleteAddress(
@@ -104,7 +171,7 @@ export class EcoPointService {
 
   async updateEcoPoint(
     id: number,
-    data: Omit<EcoPointType, 'id' | 'materialsCollected'>,
+    data: Partial<EcoPointUpdateType>,
   ): Promise<EcoPointType> {
     const ecoPoint = await this.prismaService.ecoPoint.findUnique({
       where: { id },
@@ -114,9 +181,28 @@ export class EcoPointService {
       throw new BadRequestException('EcoPoint não encontrado');
     }
 
+    const updateData: any = { ...data };
+    let address;
+    if (
+      data.zipCode &&
+      data.zipCode !== ecoPoint.zipCode &&
+      data.numberAddress &&
+      data.numberAddress !== ecoPoint.numberAddress
+    ) {
+      address = await this.addressService.getCompleteAddress(
+        data.zipCode,
+        data.numberAddress,
+      );
+    }
+
+    // --- ATUALIZAÇÃO FINAL NO BANCO ---
     const updatedEcoPoint = await this.prismaService.ecoPoint.update({
       where: { id },
-      data,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      data: {
+        ...updateData,
+        ...address,
+      },
     });
 
     return {

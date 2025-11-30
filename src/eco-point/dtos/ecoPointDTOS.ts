@@ -39,3 +39,9 @@ export class EcoPointDTO {
   @IsNotEmpty()
   numberAddress: string;
 }
+
+export class SearchNearbyEcoPointsDTO {
+  zipdCode: string;
+  latitude: number;
+  longitude: number;
+}

@@ -9,8 +9,12 @@ import {
   Post,
 } from '@nestjs/common';
 import { EcoPointService } from './eco-point.service';
-import { EcoPointDTO } from './dtos/ecoPointDTOS';
-import { EcoPointType, EcoPointTypeFormatted } from './ecoPointTypes';
+import { EcoPointDTO, SearchNearbyEcoPointsDTO } from './dtos/ecoPointDTOS';
+import {
+  EcoPointType,
+  EcoPointTypeFormatted,
+  EcoPointUpdateType,
+} from './ecoPointTypes';
 
 @Controller('eco-points')
 export class EcoPointController {
@@ -26,12 +30,19 @@ export class EcoPointController {
     return await this.ecoPointService.findById(+id);
   }
 
+  @Get()
+  async getNearEcoPoints(@Body() query: SearchNearbyEcoPointsDTO) {
+    return await this.ecoPointService.getNearEcoPoints(query);
+  }
   @Post('create')
   async create(@Body() data: EcoPointDTO) {
     return await this.ecoPointService.create(data);
   }
   @Patch(':id')
-  async update(@Param('id') id: number, @Body() data: Partial<EcoPointType>) {
+  async update(
+    @Param('id') id: number,
+    @Body() data: Partial<EcoPointUpdateType>,
+  ) {
     try {
       return await this.ecoPointService.updateEcoPoint(+id, data);
     } catch (error) {
