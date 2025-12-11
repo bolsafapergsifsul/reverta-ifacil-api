@@ -31,7 +31,7 @@ export class AuthService {
       data.numberAddress,
     );
 
-    const user = await this.prismaService.user.create({
+    await this.prismaService.user.create({
       data: {
         ...data,
         ...address,
@@ -39,9 +39,7 @@ export class AuthService {
       },
     });
 
-    return {
-      user,
-    };
+    return 'usuário criado com sucesso';
   }
 
   async signIn(data: SignInDTO) {
@@ -94,7 +92,23 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
-      user,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        profilePic: user.profilePic,
+        phoneNumber: user.phoneNumber,
+        document: user.document,
+        zipCode: user.zipCode,
+        street: user.street,
+        numberAddress: user.numberAddress,
+        neighborhood: user.neighborhood,
+        city: user.city,
+        state: user.state,
+        complement: user.complement,
+        latitude: user.latitude,
+        longitude: user.longitude,
+      },
     };
   }
 
@@ -185,7 +199,23 @@ export class AuthService {
     return {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
-      user,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        profilePic: user.profilePic,
+        phoneNumber: user.phoneNumber,
+        document: user.document,
+        zipCode: user.zipCode,
+        street: user.street,
+        numberAddress: user.numberAddress,
+        neighborhood: user.neighborhood,
+        city: user.city,
+        state: user.state,
+        complement: user.complement,
+        latitude: user.latitude,
+        longitude: user.longitude,
+      },
     };
   }
 

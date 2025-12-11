@@ -66,13 +66,81 @@ export class EcoPointService {
       materialsCollected: ecoPoint.materialsCollected,
     };
   }
+  // async getNearEcoPoints(query: SearchNearbyEcoPointsDTO) {
+  //   let userLat: number;
+  //   let userLng: number;
+
+  //   if (query.zipdCode) {
+  //     const address = await this.addressService.getCompleteAddress(
+  //       query.zipdCode,
+  //       '0',
+  //     );
+
+  //     userLat = address.latitude;
+  //     userLng = address.longitude;
+  //   } else if (query.latitude && query.longitude) {
+  //     userLat = query.latitude;
+  //     userLng = query.longitude;
+  //   } else {
+  //     throw new BadRequestException(
+  //       'Você deve enviar um CEP ou latitude/longitude.',
+  //     );
+  //   }
+
+  //   const ecoPoints = await this.prismaService.ecoPoint.findMany({});
+  //   const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  //     const R = 6371; // km
+  //     const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  //     const dLon = ((lon2 - lon1) * Math.PI) / 180;
+
+  //     const a =
+  //       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+  //       Math.cos((lat1 * Math.PI) / 180) *
+  //         Math.cos((lat2 * Math.PI) / 180) *
+  //         Math.sin(dLon / 2) *
+  //         Math.sin(dLon / 2);
+
+  //     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  //     return R * c;
+  //   };
+
+  //   // -----------------------------------------
+  //   // 5. Formatar + adicionar distância
+  //   // -----------------------------------------
+  //   const formatted = ecoPoints.map((eco) => ({
+  //     id: eco.id,
+  //     name: eco.name,
+  //     distance: calculateDistance(
+  //       userLat,
+  //       userLng,
+  //       Number(eco.latitude),
+  //       Number(eco.longitude),
+  //     ),
+  //     zipCode: eco.zipCode,
+  //     street: eco.street,
+  //     numberAddress: eco.numberAddress,
+  //     city: eco.city,
+  //     state: eco.state,
+  //     serviceHours: eco.serviceHours,
+  //     phoneNumber: eco.phoneNumber,
+  //     latitude: eco.latitude,
+  //     longitude: eco.longitude,
+  //   }));
+
+  //   // -----------------------------------------
+  //   // 6. Ordenar por distância ascendente
+  //   // -----------------------------------------
+  //   return formatted.sort((a, b) => a.distance - b.distance);
+  // }
+
   async getNearEcoPoints(query: SearchNearbyEcoPointsDTO) {
     let userLat: number;
     let userLng: number;
 
-    if (query.zipdCode) {
+    if (query.zipCode) {
       const address = await this.addressService.getCompleteAddress(
-        query.zipdCode,
+        query.zipCode,
         '0',
       );
 
@@ -88,50 +156,55 @@ export class EcoPointService {
     }
 
     const ecoPoints = await this.prismaService.ecoPoint.findMany({});
+
     const calculateDistance = (lat1, lon1, lat2, lon2) => {
       const R = 6371; // km
       const dLat = ((lat2 - lat1) * Math.PI) / 180;
       const dLon = ((lon2 - lon1) * Math.PI) / 180;
 
       const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.sin(dLat / 2) ** 2 +
         Math.cos((lat1 * Math.PI) / 180) *
           Math.cos((lat2 * Math.PI) / 180) *
-          Math.sin(dLon / 2) *
-          Math.sin(dLon / 2);
+          Math.sin(dLon / 2) ** 2;
 
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
       return R * c;
     };
 
-    // -----------------------------------------
-    // 5. Formatar + adicionar distância
-    // -----------------------------------------
-    const formatted = ecoPoints.map((eco) => ({
-      id: eco.id,
-      name: eco.name,
-      distance: calculateDistance(
+    // ----------------------------
+    // 1) Formatar + adicionar distância
+    // ----------------------------
+    const formatted = ecoPoints.map((eco) => {
+      const distance = calculateDistance(
         userLat,
         userLng,
         Number(eco.latitude),
         Number(eco.longitude),
-      ),
-      zipCode: eco.zipCode,
-      street: eco.street,
-      numberAddress: eco.numberAddress,
-      city: eco.city,
-      state: eco.state,
-      serviceHours: eco.serviceHours,
-      phoneNumber: eco.phoneNumber,
-      latitude: eco.latitude,
-      longitude: eco.longitude,
-    }));
+      );
 
-    // -----------------------------------------
-    // 6. Ordenar por distância ascendente
-    // -----------------------------------------
-    return formatted.sort((a, b) => a.distance - b.distance);
+      return {
+        id: eco.id,
+        name: eco.name,
+        street: eco.street,
+        numberAddress: eco.numberAddress,
+        neighborhood: eco.neighborhood,
+        phoneNumber: eco.phoneNumber,
+        serviceHours: eco.serviceHours,
+        distance,
+      };
+    });
+
+    // ----------------------------
+    // 2) Filtrar até 5 km
+    // ----------------------------
+    const filtered = formatted.filter((eco) => eco.distance <= 5);
+
+    // ----------------------------
+    // 3) Ordenar por distância
+    // ----------------------------
+    return filtered.sort((a, b) => a.distance - b.distance);
   }
 
   async create(data: EcoPointDTO) {

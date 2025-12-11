@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { EcoPointService } from './eco-point.service';
 import { EcoPointDTO, SearchNearbyEcoPointsDTO } from './dtos/ecoPointDTOS';
@@ -25,15 +26,15 @@ export class EcoPointController {
     return await this.ecoPointService.findAll();
   }
 
+  @Get('search')
+  async getNearEcoPoints(@Query() query: SearchNearbyEcoPointsDTO) {
+    return await this.ecoPointService.getNearEcoPoints(query);
+  }
   @Get(':id')
-  async getEcoPointById(@Param('id') id: number): Promise<EcoPointType | null> {
+  async getEcoPointById(@Param('id') id: string): Promise<EcoPointType | null> {
     return await this.ecoPointService.findById(+id);
   }
 
-  @Get()
-  async getNearEcoPoints(@Body() query: SearchNearbyEcoPointsDTO) {
-    return await this.ecoPointService.getNearEcoPoints(query);
-  }
   @Post('create')
   async create(@Body() data: EcoPointDTO) {
     return await this.ecoPointService.create(data);

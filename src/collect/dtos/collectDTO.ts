@@ -12,10 +12,6 @@ import { Type } from 'class-transformer';
 class CreateCollectMaterialDto {
   @IsNumber()
   id: number; // material id
-
-  @IsOptional()
-  @IsNumber()
-  quantity?: number;
 }
 
 export class CreateCollectDto {

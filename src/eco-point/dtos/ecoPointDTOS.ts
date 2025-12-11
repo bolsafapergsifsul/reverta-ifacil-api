@@ -41,7 +41,7 @@ export class EcoPointDTO {
 }
 
 export class SearchNearbyEcoPointsDTO {
-  zipdCode: string;
+  zipCode: string;
   latitude: number;
   longitude: number;
 }

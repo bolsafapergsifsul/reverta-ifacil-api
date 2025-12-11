@@ -1,31 +1,91 @@
-import { Injectable } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UpdateUserType, UserFormatedType } from './userTypes';
 
 @Injectable()
 export class UserService {
   constructor(private prismaService: PrismaService) {}
 
-  async findAll(): Promise<User[]> {
+  async findAll(): Promise<UserFormatedType[]> {
     const users = await this.prismaService.user.findMany({});
-    return users;
+    const usersFormated = users.map((user) => {
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        profilePic: user.profilePic,
+        phoneNumber: user.phoneNumber,
+        document: user.document,
+        zipCode: user.zipCode,
+        street: user.street,
+        numberAddress: user.numberAddress,
+        neighborhood: user.neighborhood,
+        city: user.city,
+        state: user.state,
+        complement: user.complement,
+        latitude: Number(user.latitude),
+        longitude: Number(user.longitude),
+      };
+    });
+    return usersFormated;
   }
 
-  async findById(id: number): Promise<User | null> {
+  async findById(id: number): Promise<UserFormatedType | null> {
     const user = await this.prismaService.user.findUnique({
       where: { id },
     });
-    return user;
+    if (!user) {
+      throw new BadRequestException('Usuário não encontrado');
+    }
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      profilePic: user.profilePic,
+      phoneNumber: user.phoneNumber,
+      document: user.document,
+      zipCode: user.zipCode,
+      street: user.street,
+      numberAddress: user.numberAddress,
+      neighborhood: user.neighborhood,
+      city: user.city,
+      state: user.state,
+      complement: user.complement,
+      latitude: Number(user.latitude),
+      longitude: Number(user.longitude),
+    };
   }
 
-  async findByEmail(email: string): Promise<User | null> {
+  async findByEmail(email: string): Promise<UserFormatedType | null> {
     const user = await this.prismaService.user.findUnique({
       where: { email },
     });
-    return user;
+    if (!user) {
+      throw new BadRequestException('Usuário não encontrado');
+    }
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      profilePic: user.profilePic,
+      phoneNumber: user.phoneNumber,
+      document: user.document,
+      zipCode: user.zipCode,
+      street: user.street,
+      numberAddress: user.numberAddress,
+      neighborhood: user.neighborhood,
+      city: user.city,
+      state: user.state,
+      complement: user.complement,
+      latitude: Number(user.latitude),
+      longitude: Number(user.longitude),
+    };
   }
 
-  async updateUser(id: number, data: Partial<User>): Promise<User> {
+  async updateUser(
+    id: number,
+    data: Partial<UpdateUserType>,
+  ): Promise<UserFormatedType> {
     const user = await this.prismaService.user.findUnique({
       where: { id },
     });
@@ -38,13 +98,45 @@ export class UserService {
       where: { id },
       data,
     });
-    return updatedUser;
+    return {
+      id: updatedUser.id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      profilePic: updatedUser.profilePic,
+      phoneNumber: updatedUser.phoneNumber,
+      document: updatedUser.document,
+      zipCode: updatedUser.zipCode,
+      street: updatedUser.street,
+      numberAddress: updatedUser.numberAddress,
+      neighborhood: updatedUser.neighborhood,
+      city: updatedUser.city,
+      state: updatedUser.state,
+      complement: updatedUser.complement,
+      latitude: Number(updatedUser.latitude),
+      longitude: Number(updatedUser.longitude),
+    };
   }
 
   async removeUser(id: number) {
     const deletedUser = await this.prismaService.user.delete({
       where: { id },
     });
-    return deletedUser;
+    return {
+      id: deletedUser.id,
+      name: deletedUser.name,
+      email: deletedUser.email,
+      profilePic: deletedUser.profilePic,
+      phoneNumber: deletedUser.phoneNumber,
+      document: deletedUser.document,
+      zipCode: deletedUser.zipCode,
+      street: deletedUser.street,
+      numberAddress: deletedUser.numberAddress,
+      neighborhood: deletedUser.neighborhood,
+      city: deletedUser.city,
+      state: deletedUser.state,
+      complement: deletedUser.complement,
+      latitude: Number(deletedUser.latitude),
+      longitude: Number(deletedUser.longitude),
+    };
   }
 }

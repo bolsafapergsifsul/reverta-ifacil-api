@@ -26,7 +26,6 @@ export class CollectService {
       },
       materials: (result.materialsCollected || []).map((cm) => ({
         id: cm.id,
-        quantity: cm.quantity ?? null,
         material: {
           id: cm.material.id,
           name: cm.material.name,
@@ -67,7 +66,6 @@ export class CollectService {
     }
     const nestedMaterials = data.materials.map((m) => ({
       material: { connect: { id: Number(m.id) } },
-      quantity: m.quantity ?? null,
     }));
 
     const created = await this.prisma.collect.create({
@@ -159,6 +157,39 @@ export class CollectService {
     return collects;
   }
 
+  async findByIdWithFilter(
+    userId: number,
+    collectStatus?: CollectStatusType,
+  ): Promise<CollectReturn[]> {
+    const whereClause = {
+      userId,
+      status: collectStatus ? collectStatus : undefined,
+    };
+    const results = await this.prisma.collect.findMany({
+      where: whereClause,
+      orderBy: { scheduledAt: 'desc' },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            phoneNumber: true,
+          },
+        },
+        ecoPoint: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        materialsCollected: {
+          include: { material: { select: { id: true, name: true } } },
+        },
+      },
+    });
+
+    return results.map((r) => this.mapCollectReturn(r));
+  }
   async updateStatus(
     id: number,
     dto: UpdateCollectStatusDto,
@@ -191,13 +222,47 @@ export class CollectService {
     return this.mapCollectReturn(updated);
   }
 
-  async cancel(id: number, dto: CollectStatusType): Promise<string> {
+  async updateDataCollect(collectId: number, data: Partial<CreateCollectDto>) {
+    const collect = await this.prisma.collect.findUnique({
+      where: { id: collectId },
+    });
+    if (!collect) throw new BadRequestException('Collect not found');
+    if (!data.scheduledAt) {
+      throw new BadRequestException('scheduledAt is required');
+    }
+    const newdate = new Date(data.scheduledAt);
+    const updated = await this.prisma.collect.update({
+      where: { id: collectId },
+      data: { scheduledAt: newdate },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        ecoPoint: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        materialsCollected: {
+          include: { material: { select: { id: true, name: true } } },
+        },
+      },
+    });
+
+    return this.mapCollectReturn(updated);
+  }
+
+  async cancel(id: number): Promise<string> {
     const collect = await this.prisma.collect.findUnique({ where: { id } });
     if (!collect) throw new BadRequestException('Collect not found');
 
     await this.prisma.collect.update({
       where: { id },
-      data: { status: dto },
+      data: { status: 'CANCELED' },
     });
     return 'Collect canceled successfully';
   }

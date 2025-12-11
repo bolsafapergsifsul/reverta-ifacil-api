@@ -2,7 +2,6 @@ import { CollectStatusDto } from './dtos/collectDTO';
 
 export type CollectMaterialReturn = {
   id: number;
-  quantity: number | null;
   material: {
     id: number;
     name: string;

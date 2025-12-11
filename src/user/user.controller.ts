@@ -6,103 +6,52 @@ import {
   Get,
   NotFoundException,
   Param,
+  ParseIntPipe,
   Patch,
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AuthGuard } from 'src/auth/auth.guard';
-import { User } from '@prisma/client';
-import { UserDTORequest } from './dto/userDTO';
+import { UpdateUserType, UserFormatedType } from './userTypes';
 
 @Controller('users')
 export class UserController {
   constructor(private userService: UserService) {}
 
   @Get()
-  async getAllUsers(): Promise<UserDTORequest[] | null> {
+  async getAllUsers(): Promise<UserFormatedType[] | null> {
     const users = await this.userService.findAll();
-    return users.map((user) => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      profilePic: user.profilePic,
-      phoneNumber: user.phoneNumber,
-      document: user.document,
-      zipCode: user.zipCode,
-      street: user.street,
-      numberAddress: user.numberAddress,
-      neighborhood: user.neighborhood,
-      city: user.city,
-      state: user.state,
-      complement: user.complement,
-      latitude: user.latitude,
-      longitude: user.longitude,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    }));
+    return users;
   }
 
   @Get(':id')
-  async getUserById(@Param('id') id: number): Promise<UserDTORequest | null> {
+  async getUserById(@Param('id') id: number): Promise<UserFormatedType | null> {
     const user = await this.userService.findById(+id);
     if (!user) {
       throw new NotFoundException('Usuário não encontrado');
     }
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      profilePic: user.profilePic,
-      phoneNumber: user.phoneNumber,
-      document: user.document,
-      zipCode: user.zipCode,
-      street: user.street,
-      numberAddress: user.numberAddress,
-      neighborhood: user.neighborhood,
-      city: user.city,
-      state: user.state,
-      complement: user.complement,
-      latitude: user.latitude,
-      longitude: user.longitude,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
+    return user;
   }
 
   @Get('email')
   async getUserByEmail(
     @Param('email') email: string,
-  ): Promise<UserDTORequest | null> {
+  ): Promise<UserFormatedType | null> {
     const user = await this.userService.findByEmail(email);
     if (!user) {
       throw new NotFoundException('Usuário não encontrado');
     }
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      profilePic: user.profilePic,
-      phoneNumber: user.phoneNumber,
-      document: user.document,
-      zipCode: user.zipCode,
-      street: user.street,
-      numberAddress: user.numberAddress,
-      neighborhood: user.neighborhood,
-      city: user.city,
-      state: user.state,
-      complement: user.complement,
-      latitude: user.latitude,
-      longitude: user.longitude,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
+    return user;
   }
 
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Patch(':id')
-  async update(@Param('id') id: number, @Body() user: Partial<User>) {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() user: Partial<UpdateUserType>,
+  ) {
     try {
-      return await this.userService.updateUser(+id, user);
+      return await this.userService.updateUser(Number(id), user);
     } catch (error) {
       throw new BadRequestException(
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access

@@ -94,7 +94,6 @@ model CollectMaterial {
   id Int @id @default(autoincrement())
   collectId Int
   materialId Int
-  quantity Float?
 
   collect     Collect     @relation(fields: [collectId], references: [id])
   material    Material    @relation(fields: [materialId], references: [id])
